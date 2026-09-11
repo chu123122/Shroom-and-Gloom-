@@ -10,9 +10,20 @@
 > （`LocalizationExtensions.FlagIfEmpty`），于是这些词在卡面、敌人意图、悬停提示里直接不见。
 > 详见文末「技术说明」。
 
+## 下载
+
+**请从 Releases 下载安装包：**
+
+### 👉 [下载最新版](https://github.com/chu123122/Shroom-and-Gloom-/releases/latest)
+
+| 文件 | 是什么 |
+|---|---|
+| `ShroomAndGloom_ChineseFix_vX.Y.Z.zip`（Release 附件） | ✅ **安装包**，含编译好的插件 + BepInEx 运行时 |
+| `Shroom-and-Gloom--main.zip`（仓库页 `Code → Download ZIP`） | ❌ **不是安装包**，只是脚本与插件源码，不含编译产物，解压到游戏目录不起作用 |
+
 ## 安装（解压即用）
 
-1. 下载 `ShroomAndGloom_ChineseFix_vX.Y.Z.zip`
+1. 从 Releases 下载 `ShroomAndGloom_ChineseFix_vX.Y.Z.zip`
 2. 解压到游戏根目录，即 `steamapps\common\Shroom and Gloom\` 下
    （包内已是 `winhttp.dll` / `BepInEx\` / `dotnet\` 结构，直接覆盖过去即可）
 3. 正常启动游戏，语言保持「中文 (简体)」
