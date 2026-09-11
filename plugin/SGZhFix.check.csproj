@@ -23,6 +23,7 @@
     <Compile Include="Plugin.cs" />
     <Compile Include="Patches.cs" />
     <Compile Include="Translations.cs" />
+    <Compile Include="GlyphWarmer.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +35,8 @@
     <Reference Include="Unity.Localization"><HintPath>$(ManagedDir)\Unity.Localization.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedDir)\UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine"><HintPath>$(ManagedDir)\UnityEngine.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="Unity.TextMeshPro"><HintPath>$(ManagedDir)\Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="UnityEngine.TextCoreFontEngineModule"><HintPath>$(ManagedDir)\UnityEngine.TextCoreFontEngineModule.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 
 </Project>

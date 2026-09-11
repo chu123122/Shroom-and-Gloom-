@@ -1,0 +1,16 @@
+
+=== WDXLLubrifontSC-Regular Atlas ===
+   {'w': 0, 'h': 0, 'fmt': 1, 'imgSize': 0, 'mips': 1, 'readable': True, 'streamData': False}
+
+=== ShroomScript Atlas ===
+   {'w': 1024, 'h': 1024, 'fmt': 1, 'imgSize': 1048576, 'mips': 1, 'readable': True, 'streamData': False}
+
+=== LiberationSans SDF Atlas ===
+   {'w': 0, 'h': 0, 'fmt': 1, 'imgSize': 0, 'mips': 1, 'readable': True, 'streamData': False}
+   {'w': 2048, 'h': 2048, 'fmt': 1, 'imgSize': 4194304, 'mips': 1, 'readable': False, 'streamData': True}
+
+=== NotoSansSC-Regular Atlas ===
+   {'w': 0, 'h': 0, 'fmt': 1, 'imgSize': 0, 'mips': 1, 'readable': True, 'streamData': False}
+
+=== NotoSansSC-Bold Atlas ===
+   {'w': 0, 'h': 0, 'fmt': 1, 'imgSize': 0, 'mips': 1, 'readable': True, 'streamData': False}

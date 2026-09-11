@@ -42,6 +42,7 @@ namespace SGZhFix
                 if (Translations.Loaded)
                 {
                     Patches.Apply(LogMsg, LogErr);
+                    GlyphWarmer.LoadCharset(LogMsg, LogErr);
                     AddComponent<LocalizationPump>();
                     LogMsg($"[SGZhFix] 就绪，等待本地化表加载…");
                 }
@@ -118,6 +119,9 @@ namespace SGZhFix
                         _injectedForLocale = true;
                         _everInjected = true;
                         Plugin.LogMsg($"[SGZhFix] 注入完成：写入 {written} 条（{code}，等待 {_waited:F1}s）");
+                        // 表已就绪、语言已是中文，此时预热字形最合适：
+                        // 中文字体是动态图集，字形不预热的话首次渲染会是空白
+                        GlyphWarmer.Warm(Plugin.LogMsg, Plugin.LogErr);
                         Refresh();
                     }
                     else if (_zhSince > AlreadyFilledGrace)

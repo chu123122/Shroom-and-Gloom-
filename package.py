@@ -16,6 +16,7 @@ import os, sys, zipfile, shutil, json
 HERE = os.path.dirname(os.path.abspath(__file__))
 BEPINEX_ZIP = os.path.join(HERE, "bepinex_dl", "be.zip")
 PLUGIN_DLL = os.path.join(HERE, "plugin", "bin", "Release", "SGZhFix.dll")
+CHARSET = os.path.join(HERE, "charset.txt")
 TRANSLATIONS = os.path.join(HERE, "translations.json")
 DIST = os.path.join(HERE, "dist")
 VERSION = "1.0.0"
@@ -92,7 +93,7 @@ BepInEx 6 (bleeding edge, build 788) — Unity IL2CPP 插件加载器
 
 
 def build():
-    missing = [p for p in (BEPINEX_ZIP, PLUGIN_DLL, TRANSLATIONS) if not os.path.exists(p)]
+    missing = [p for p in (BEPINEX_ZIP, PLUGIN_DLL, TRANSLATIONS, CHARSET) if not os.path.exists(p)]
     if missing:
         print("缺少以下文件，无法打包：")
         for m in missing: print("   ", m)
@@ -112,6 +113,7 @@ def build():
         # 2) 我们的插件与译文
         z.write(PLUGIN_DLL, "BepInEx/plugins/SGZhFix.dll")
         z.write(TRANSLATIONS, "BepInEx/plugins/translations.json")
+        z.write(CHARSET, "BepInEx/plugins/charset.txt")
         # 3) 说明与声明
         z.writestr("安装说明.txt", README_TXT)
         z.writestr("THIRD-PARTY.txt", THIRD_PARTY)
