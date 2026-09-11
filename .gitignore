@@ -1,0 +1,62 @@
+# ============================================================
+# 游戏本体资产 —— 不纳入版本管理（版权属于 Team Lazerbeam）
+# 这些文件只在本地存在，用于生成/校验补丁
+# 注意：.gitignore 不支持行内注释，注释必须单独成行
+# ============================================================
+
+# 反编译产物
+src/
+
+# 补丁包与原始备份（游戏资产）
+patched/
+backup/
+*.bundle
+*.dll
+*.dat
+*.pdb
+
+# ============================================================
+# 从游戏数据批量导出的中间产物（含大量官方原文）
+# ============================================================
+keys.json
+zh.json
+en.json
+gloss.json
+coverage_report.txt
+missing_keys.txt
+glossary.txt
+terminology.txt
+models.txt
+style_baseline.txt
+translations_review.txt
+installed_sample.txt
+
+# ============================================================
+# 一次性诊断脚本（定位阶段用完即弃）
+# ============================================================
+peek.py
+peek2.py
+loc.py
+loc2.py
+loc3.py
+loc4.py
+loc5.py
+loc6.py
+diag.py
+diag2.py
+diag3.py
+diag4.py
+diag5.py
+diag6.py
+term.py
+gloss.py
+gloss2.py
+style.py
+fonts.py
+tmpparse.py
+fontparse.py
+fontparse2.py
+layout.py
+model.py
+
+__pycache__/
