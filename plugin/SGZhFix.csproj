@@ -43,6 +43,10 @@
 
   <!-- 由 BepInEx 首次启动游戏时生成的 interop 程序集 -->
   <ItemGroup>
+    <!-- Il2Cppmscorlib / Il2CppSystem.* 等基础类型，缺了会报 CS0012 -->
+    <Reference Include="$(InteropDir)\Il2Cpp*.dll">
+      <Private>false</Private>
+    </Reference>
     <Reference Include="Assembly-CSharp">
       <HintPath>$(InteropDir)\Assembly-CSharp.dll</HintPath>
       <Private>false</Private>

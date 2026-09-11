@@ -93,13 +93,20 @@ return EmptyEntry(entryKey, value);   // 语言调试关闭时直接 return valu
 ```
 Load()  读取 translations.json（静态字典）
   ↓
-Update() 轮询直到 5 张表都能取到（LocalizationSettings.StringDatabase.GetTable != null）
+Update() 轮询，等两个条件同时成立：
+          ① 当前语言是中文（LocalizationSettings.SelectedLocale 的 code 以 zh 开头）
+          ② 5 张表都能取到（StringDatabase.GetTable != null）
   ↓
-逐条写入：仅当表内该条目为空时才写，已有值一律不动
+逐条写入：仅当表内该条目为空时才写，已有值一律不动（重复调用幂等）
   ↓
 触发一次 LocalizationHelpers.OnLanguageChange 刷新界面
         （现成事件，10 个订阅者，不新增刷新机制）
 ```
+
+> **为什么必须判语言**：`GetTable(集合)` 返回的是**当前 locale** 的表。
+> 实测游戏启动时先是 `en`，约 0.7 秒后才切到 `zh-Hans`。若在 `en` 阶段就注入，
+> 拿到的是英文表——每个 key 都有值，会被"只填空值"的逻辑全部跳过，一条都写不进去。
+> 语言变化时会重新评估，所以「中→英→中」也能再次注入。
 
 另注册 6 个 Harmony postfix 作兜底（5 个取值函数 + `KeywordTooltipRegistry`），
 万一 `StringTableEntry.Value` 的写入在 Il2CppInterop 下没写穿，读取时仍能拦住空值。

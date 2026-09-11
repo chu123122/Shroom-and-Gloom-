@@ -67,33 +67,66 @@ namespace SGZhFix
         // Il2CppObjectBase 通过反射查找 (IntPtr) 构造函数来实例化注入类型，必须显式提供
         public LocalizationPump(IntPtr ptr) : base(ptr) { }
 
-        private bool _done;
+        private bool _injectedForLocale;
+        private string _lastLocale;
         private float _waited;
+        private float _zhSince;          // 切到中文后经过的秒数
         private const float Timeout = 120f;
+        private const float AlreadyFilledGrace = 5f;
 
         private void Update()
         {
-            if (_done) return;
             try
             {
                 _waited += Time.deltaTime;
                 if (_waited > Timeout)
                 {
-                    _done = true;
-                    Plugin.LogErr($"[SGZhFix] 等待本地化表超时（{Timeout}s），放弃注入。");
+                    Plugin.LogErr($"[SGZhFix] 等待超时（{Timeout}s），放弃。");
+                    enabled = false;
                     return;
                 }
-                if (!TablesReady()) return;
 
-                int written = Inject();
-                Refresh();
-                _done = true;
-                Plugin.LogMsg($"[SGZhFix] 注入完成：写入 {written} 条，等待 {_waited:F1}s");
+                var locale = LocalizationSettings.SelectedLocale;
+                if (locale == null) return;
+                var code = locale.Identifier.Code;
+                if (string.IsNullOrEmpty(code)) return;
+
+                // 语言变了就重新评估（中→英→中 也要能再注入）
+                if (code != _lastLocale)
+                {
+                    _lastLocale = code;
+                    _injectedForLocale = false;
+                    _zhSince = 0f;
+                    Plugin.LogMsg($"[SGZhFix] 当前语言: {code}");
+                }
+
+                // 关键：GetTable 返回的是「当前 locale」的表。
+                // 英文下表里每个 key 都有值，此时注入会被全部跳过——
+                // 必须等语言真的切到中文再动手。
+                if (!code.ToLowerInvariant().StartsWith("zh")) return;
+
+                _zhSince += Time.deltaTime;
+                if (TablesReady() && !_injectedForLocale)
+                {
+                    int written = Inject();      // 幂等：只填空值
+                    if (written > 0)
+                    {
+                        _injectedForLocale = true;
+                        Plugin.LogMsg($"[SGZhFix] 注入完成：写入 {written} 条（{code}，等待 {_waited:F1}s）");
+                        Refresh();
+                    }
+                    else if (_zhSince > AlreadyFilledGrace)
+                    {
+                        // 连续几秒一条都没写，说明这张表本来就不缺这些条目
+                        _injectedForLocale = true;
+                        Plugin.LogMsg($"[SGZhFix] {code} 表中这些条目均已有值，无需注入");
+                    }
+                }
             }
             catch (Exception e)
             {
-                _done = true;
-                Plugin.LogErr($"[SGZhFix] 注入过程出错（游戏仍可正常游玩）：{e}");
+                enabled = false;
+                Plugin.LogErr($"[SGZhFix] 注入过程出错，已停止（游戏仍可正常游玩）：{e}");
             }
         }
 
