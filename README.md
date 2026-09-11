@@ -20,10 +20,6 @@
 
 ### 👉 [下载最新版](https://github.com/chu123122/Shroom-and-Gloom-/releases/latest)
 
-| 文件 | 是什么 |
-|---|---|
-| `ShroomAndGloom_ChineseFix_vX.Y.Z.zip`（Release 附件） | ✅ **安装包**，含编译好的插件 + BepInEx 运行时 |
-| `Shroom-and-Gloom--main.zip`（仓库页 `Code → Download ZIP`） | ❌ **不是安装包**，只是脚本与插件源码，不含编译产物，解压到游戏目录不起作用 |
 
 ## 安装（解压即用）
 
