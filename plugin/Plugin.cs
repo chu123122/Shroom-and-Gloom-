@@ -68,6 +68,7 @@ namespace SGZhFix
         public LocalizationPump(IntPtr ptr) : base(ptr) { }
 
         private bool _injectedForLocale;
+        private bool _everInjected;
         private string _lastLocale;
         private float _waited;
         private float _zhSince;          // 切到中文后经过的秒数
@@ -79,9 +80,12 @@ namespace SGZhFix
             try
             {
                 _waited += Time.deltaTime;
-                if (_waited > Timeout)
+                // 超时只用于「迟迟等不到中文」这一种情况。
+                // 注入成功后不再计时，否则会在 120s 时报一条假的超时错误，
+                // 并且把组件停掉、失去响应后续语言切换的能力。
+                if (!_everInjected && _waited > Timeout)
                 {
-                    Plugin.LogErr($"[SGZhFix] 等待超时（{Timeout}s），放弃。");
+                    Plugin.LogErr($"[SGZhFix] 等待中文语言超时（{Timeout}s），放弃。");
                     enabled = false;
                     return;
                 }
@@ -112,6 +116,7 @@ namespace SGZhFix
                     if (written > 0)
                     {
                         _injectedForLocale = true;
+                        _everInjected = true;
                         Plugin.LogMsg($"[SGZhFix] 注入完成：写入 {written} 条（{code}，等待 {_waited:F1}s）");
                         Refresh();
                     }
