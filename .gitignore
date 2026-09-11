@@ -60,3 +60,4 @@ layout.py
 model.py
 
 __pycache__/
+catalog_region.txt

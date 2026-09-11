@@ -25,12 +25,33 @@ GetCardEntry / GetEnemyEntry / GetUIEntry / GetWorldEntry / GetCardNamesEntry
 
 ## 修复方式
 
-把这 65 条补成中文译文，**直接写进中文 StringTable bundle**。
-不改代码、不装 mod 加载器、不动游戏本体任何其它文件。
+把这 65 条补成中文译文，写进中文 StringTable bundle。不改代码、不装 mod 加载器。
 
-> Addressables 的 catalog 虽然为每个 bundle 存了 CRC，但 `m_UseUWRForLocalBundles=false`
-> 且全部 bundle 都在本地 StreamingAssets，走 `AssetBundle.LoadFromFile`——**本地加载不校验 CRC**，
-> 所以替换 bundle 是安全的。
+**必须同时改两个文件**，只改 bundle 会让整个界面变成英文（见下）。
+
+### ⚠️ 为什么要改 catalog.json
+
+Addressables 对**本地** bundle 同样会调 `AssetBundle.LoadFromFile(path, crc, offset)`，
+crc 取自 catalog 里该 bundle 的 `AssetBundleRequestOptions.m_Crc`。
+bundle 内容一变、CRC 就不再匹配，Unity 直接拒绝加载：
+
+```
+CRC Mismatch. Provided 2da1151c, calculated dfbb94ae from data.
+Will not load AssetBundle 'aa\StandaloneWindows64\localization-string-tables-chinese(simplified)(zh-hans)_assets_all.bundle'
+```
+
+（证据见 `%USERPROFILE%\AppData\LocalLow\Team Lazerbeam\Shroom and Gloom\Player.log`）
+
+后果是 zh-Hans 字符串表**全部**加载失败，`LocalizedFallbackText` 对缺失表返回英文 fallback，
+于是**整个界面回退英文**——不是"补丁没生效"，是"补丁把中文表整个搞没了"。
+
+`patch_catalog.py` 把该条目的 `m_Crc` 置 0（Unity 在 crc=0 时跳过校验）。
+catalog 的 `m_ExtraDataString` 是 base64 的二进制块，条目之间靠**字节偏移**互引，
+所以改动**保持字节长度完全一致**：`"m_Crc":765531420` → `"m_Crc":0` + 8 个空格。
+实测整个 catalog.json 31363 → 31363 字节，仅 13 个字符不同，且全部落在 base64 串内。
+
+> 注：Unity 的 bundle CRC 不是任何标准 CRC-32 变体（zlib / BZIP2 / MPEG-2 / POSIX /
+> JAMCRC / XFER / Castagnoli / D 均不匹配），所以直接算出正确 CRC 不可行，改用置 0。
 
 ## 用法
 
@@ -42,10 +63,11 @@ pip install UnityPy
 
 ```bash
 python apply_translations.py   # 由 translations.json 生成 patched/*.bundle
+python patch_catalog.py        # 生成 patched/catalog.json（CRC 置 0）
 python verify_patch.py         # 全量校验：只改这 65 条，其余一条未动
-python deploy.py install       # 备份原文件并安装
+python deploy.py install       # 备份原文件并安装两个文件
 python deploy.py status        # 查看当前状态
-python deploy.py restore       # 还原
+python deploy.py restore       # 还原两个文件
 ```
 
 游戏目录默认 `D:/SteamLibrary/steamapps/common/Shroom and Gloom`，
@@ -58,9 +80,15 @@ python deploy.py restore       # 还原
 | `translations.json` | **唯一的译文数据源**。改译文只需改这里再重跑脚本 |
 | `rebuild.py` | StringTable 二进制解析/重序列化（含字节级往返自测） |
 | `gen_translations.py` | 由内置译文表生成 `translations.json`，并校验 token 与空值前提 |
-| `apply_translations.py` | 生成补丁包。**始终从 `backup/` 的原始包读取**，可反复重建 |
+| `apply_translations.py` | 生成补丁 bundle。**始终从 `backup/` 的原始包读取**，可反复重建 |
+| `patch_catalog.py` | 把中文 bundle 的 CRC 置 0，使补丁包能通过 Addressables 校验 |
 | `verify_patch.py` | 全量 diff 校验，确认只有 65 处变更 |
-| `deploy.py` | 安装 / 还原 / 状态 |
+| `deploy.py` | 安装 / 还原 / 状态（同时管 bundle 与 catalog 两个文件） |
+
+## 排查
+
+界面变英文 → 查 `Player.log` 有没有 `CRC Mismatch`，多半是 catalog 没打补丁。
+中文没出现但也没报错 → 查 `verify_patch.py` 输出。
 
 ## 已知限制
 
