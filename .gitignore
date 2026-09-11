@@ -61,3 +61,13 @@ model.py
 
 __pycache__/
 catalog_region.txt
+
+# 插件编译产物
+plugin/bin/
+plugin/obj/
+
+# 第三方二进制与发布产物（不入库，用脚本重新生成）
+bepinex_dl/
+dist/
+dmg_search.txt
+dupcheck.txt

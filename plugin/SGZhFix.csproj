@@ -1,0 +1,70 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    编译前需要 BepInEx/interop/ 已生成（首次启动游戏时自动生成）。
+    游戏目录默认如下，可用 -p:GameDir=... 覆盖：
+      dotnet build -c Release -p:GameDir="D:\path\to\Shroom and Gloom"
+  -->
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>SGZhFix</AssemblyName>
+    <RootNamespace>SGZhFix</RootNamespace>
+    <Version>1.0.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>disable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+
+    <GameDir Condition="'$(GameDir)' == ''">D:\SteamLibrary\steamapps\common\Shroom and Gloom</GameDir>
+    <BepInExDir>$(GameDir)\BepInEx</BepInExDir>
+    <InteropDir>$(BepInExDir)\interop</InteropDir>
+  </PropertyGroup>
+
+  <!-- BepInEx 自带运行时 -->
+  <ItemGroup>
+    <Reference Include="BepInEx.Core">
+      <HintPath>$(BepInExDir)\core\BepInEx.Core.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="BepInEx.Unity.IL2CPP">
+      <HintPath>$(BepInExDir)\core\BepInEx.Unity.IL2CPP.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(BepInExDir)\core\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Il2CppInterop.Runtime">
+      <HintPath>$(BepInExDir)\core\Il2CppInterop.Runtime.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- 由 BepInEx 首次启动游戏时生成的 interop 程序集 -->
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(InteropDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Unity.Localization">
+      <HintPath>$(InteropDir)\Unity.Localization.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>$(InteropDir)\UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- 编译后自动连同译文一起放进 plugins/ -->
+  <Target Name="DeployToPlugins" AfterTargets="Build">
+    <ItemGroup>
+      <PluginFiles Include="$(TargetDir)$(AssemblyName).dll" />
+      <PluginFiles Include="$(MSBuildProjectDirectory)\..\translations.json" />
+    </ItemGroup>
+    <Copy SourceFiles="@(PluginFiles)" DestinationFolder="$(BepInExDir)\plugins" />
+    <Message Importance="high" Text="已部署到 $(BepInExDir)\plugins" />
+  </Target>
+
+</Project>
