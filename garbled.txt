@@ -1,0 +1,52 @@
+
+=== 含 花精 的条目 (花精) ===
+  [Card] PROPERTY_ENERGY_COST                           = '花费精力'
+  [Card] TOOLTIP_ENERGY_COST                            = '花费精力'
+  [World] TRAINING_TYPE_DETAIL_FURTHER_PD_REDUCE_ENERGY_COST = '此牌将会少花费 1 点精力'
+
+=== 含 稠 的条目 (稠) ===
+  [Card] WORD_GUNKY                                     = '黏稠'
+  [World] EXPLORE_REWARD_DOOR_TOOLTIP_P2_GARBAGECOMPACTOR = '有一台垃圾压缩机。\\n让你的卡变得黏稠。'
+  [World] MAP_REWARD_GARBAGE_COMPACTOR                   = '垃圾压缩机\\n让你的卡变得黏稠。'
+
+=== 含 添 的条目 (添) ===
+  [Card] INTENT_INCREASE_GUNK                           = '[JOINER=WORD_TO][MULTIPLICITY_CARD]添加 [PNUM] 层[LINKKEY=PROPERTY_GUNK]'
+  [Card] FORESIGHT_CHARGE                               = '当你移除任意牌的黏糊时，为随机一张牌添加 1 点[LINKKEY=PROPERTY_BATTERY]。'
+  [Card] FORESIGHT_INFECTION                            = '当一个敌人受到10点或更多伤害时，添加 5 层[LINKKEY=STATUS_DECAY]'
+  [Card] TOOLTIP_TRIGGER_IF_UNGUNKED                    = '每将一层黏糊\\n添加至一张牌。'
+  [Card] INTENT_ADD_MAKE_CARD                           = '[JOINER=WORD_OFF][MULTIPLICITY_CARD]添加“创造 [PNUM][JNUM=WORD_QUANTIFIERA][HEXCODE][CARD_NAME]</color>”'
+  [Card] INTENT_ADD_PROPERTY_TO_CARD                    = '添加 [LINKKEY=[PROPERTY_NAME]][JOINER=WORD_ON][MULTIPLICITY_CARD]'
+  [Card] INTENT_APPLY_VIBRATING                         = '[JOINER=WORD_TO][MULTIPLICITY_ENEMY]添加 [PNUM][JNUM=WORD_QUANTIFIERB][LINKKEY=STATUS_VIBRATING]'
+  [Card] INTENT_APPLY_STUDIED                           = '[JOINER=WORD_TO][MULTIPLICITY_ENEMY]添加 [PNUM][JNUM=WORD_QUANTIFIERB][LINKKEY=STATUS_STUDIED]'
+  [Card] INTENT_APPLY_NANO_LACED                        = '[JOINER=WORD_TO][MULTIPLICITY_ENEMY]添加 [PNUM][JNUM=WORD_QUANTIFIERB][LINKKEY=STATUS_NANO_LACED]'
+  [Card] FORESIGHT_GOO_THAT_REMAINS                     = '当你在战斗中结束回合时，随机一张牌添加一层[LINKKEY=PROPERTY_GUNK]。'
+  [Card] TOOLTIP_INTENT_INCREASE_APPLIED_DECAY          = '为卡牌永久添加腐朽\\n腐朽会提升敌人受到的伤害'
+  [Card] WORD_ADD_PROPERTY_TO_CARD                      = '添加顽固 '
+  [Card] FORESIGHT_FILTHY                               = '当你对一个敌人施加腐朽时，额外添加 2 层[LINKKEY=STATUS_DECAY]。'
+  [Enemy] ENEMY_INTENT_MODIFY_STATUS_MOSSY               = '[HEXCODE]\\n会为[TARGET_OF_ENEMY]添加苔藓，提升再生效果</color>'
+  [Enemy] TOOLTIP_STATUS_BRAINLESS                       = '[HEXCODE]\\n每次受到伤害时，会添加 [PNUM][JNUM=WORD_QUANTIFIERB]困惑。</color>'
+  [World] TRAINING_TYPE_DETAIL_GUNK_DRAW_REPLENISH       = '添加[LINKKEY=PROPERTY_DRAW_WITH_GUNK]'
+  [World] TRAINING_TYPE_DETAIL_GS_ENERGISE_GUNKED_CARD   = '[LINKKEY=PROPERTY_ENERGIZE]并添加 1 层[LINKKEY=WORD_GUNKY]'
+  [World] TRAINING_TYPE_DETAIL_PD_ADD_DOUBLE_VULNERABLE  = '添加 2 层[LINKKEY=PROPERTY_DRAW_WITH_GUNK]'
+  [World] TRAINING_TYPE_DETAIL_PD_ADD_REPLENISH          = '添加[LINKKEY=PROPERTY_REPLENISH]'
+  [World] TRAINING_TYPE_DETAIL_PD_ADD_VULNERABLE         = '添加 1 层[LINKKEY=PROPERTY_DRAW_WITH_GUNK]'
+  [World] TRAINING_TYPE_DETAIL_PD_ENERGIZE               = '添加[LINKKEY=PROPERTY_ENERGIZE]'
+  [World] TRAINING_TYPE_DETAIL_SC_ADD_1_GUNKY_AND_REPLENISH = '添加 1 层[LINKKEY=WORD_GUNKY]和[LINKKEY=PROPERTY_REPLENISH]'
+  [World] TRAINING_TYPE_DETAIL_SC_ADD_2_GUNKY            = '添加 2 层[LINKKEY=WORD_GUNKY]'
+  [World] TRAINING_TYPE_DETAIL_WB_ADD_3_GUNKY            = '添加 3 层[LINKKEY=WORD_GUNKY]'
+  [World] TRAINING_TYPE_DETAIL_WB_ADD_HANDY              = '添加[LINKKEY=PROPERTY_HANDY]'
+  [World] TRAINING_TYPE_DETAIL_DJ_ADD_STAINLESS          = '添加[LINKKEY=PROPERTY_STAINLESS]'
+
+=== 含 丨(竖线) 的条目 (丨) ===
+  (无)
+
+=== 含 花 的条目 (花) ===
+  [Card] PROPERTY_ENERGY_COST                           = '花费精力'
+  [Card] WORD_CARD_COST                                 = '花费：[PNUM] '
+  [Card] TOOLTIP_ENERGY_COST                            = '花费精力'
+  [Card Names] CARD_NAMES_GOLDEN_POLLEN                       = '黄金花粉'
+  [Card Names] CARD_NAMES_MARSHMALLOWS                        = '棉花糖'
+  [Card Names] CARD_NAMES_SPARK                               = '火花'
+  [Card Names] CARD_NAMES_GLOOM_BLOSSOM                       = '幽暗之花'
+  [Enemy] STATUS_NECROBLOOM                              = '死冥之花'
+  [World] TRAINING_TYPE_DETAIL_FURTHER_PD_REDUCE_ENERGY_COST = '此牌将会少花费 1 点精力'

@@ -68,6 +68,11 @@
       <HintPath>$(InteropDir)\UnityEngine.TextCoreFontEngineModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <!-- TMP_Text 的 gameObject / isActiveAndEnabled 来自 MaskableGraphic / Behaviour -->
+    <Reference Include="UnityEngine.UI">
+      <HintPath>$(InteropDir)\UnityEngine.UI.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
   </ItemGroup>
 
   <!-- 编译后自动连同译文一起放进 plugins/ -->

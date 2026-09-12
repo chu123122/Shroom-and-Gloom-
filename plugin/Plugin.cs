@@ -44,6 +44,7 @@ namespace SGZhFix
                     Patches.Apply(LogMsg, LogErr);
                     GlyphWarmer.LoadCharset(LogMsg, LogErr);
                     AddComponent<LocalizationPump>();
+                    AddComponent<TextDiagnostics>();   // 诊断：报告字体链渲染不了的中文字形
                     LogMsg($"[SGZhFix] 就绪，等待本地化表加载…");
                 }
             }
