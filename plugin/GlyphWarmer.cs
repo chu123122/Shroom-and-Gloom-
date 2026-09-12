@@ -9,19 +9,25 @@ using UnityEngine;
 namespace SGZhFix
 {
     /// <summary>
-    /// 中文动态字体图集的字形预热。
+    /// 中文字形预热（只预热真正含中文字形的字体）。
     ///
-    /// 背景：游戏里所有中文字体（WDXLLubrifontSC / NotoSansSC）的图集在序列化数据里
-    /// 都是 0×0、零图像数据 —— 这是 TMP **Dynamic** 字体资产的特征：图集运行时才分配，
-    /// 用到哪个字才往图集里加。对比之下拉丁文用的 ShroomScript 是 1024×1024 完整烘焙的静态图集。
+    /// 背景与实测经过：
+    ///  1. 游戏的中文字体是 TMP **Dynamic** 字体，图集运行时才分配、按需加字形；
+    ///     字形没就位时渲染为空白 —— 这是「卡名有时显示有时不显示」的来源。
+    ///  2. 第一版实现无差别地对 18 个字体灌 1714 字，**引入了新问题**：
+    ///     实测日志显示，卡名/卡描述用的拉丁展示字体
+    ///     （`Tom Chalky - BobbyJonesSoft-*`、`Comicraft - CCDuskTillDawn*`）
+    ///     **根本不含 CJK 字形**（"有 1623 字未加入"），却仍被灌进 ~90 个
+    ///     ASCII/标点字形，图集从 1 页涨到 2 页 —— 纯属有害。
+    ///     卡牌标题/描述用的正是这些字体，跨页后渲染错乱，出现了「添丨稠花精」式乱码。
+    ///  3. 试过「关多图集 + 调大图集到 8192² + ClearFontAssetData」做单页方案，
+    ///     实测**装不下**：8192²（6700 万像素）只吃下 550/1713 字，
+    ///     且开销极大（分配 64MB 纹理）会明显拖慢启动，已放弃。
     ///
-    /// 后果：某个中文字形在被加入图集之前渲染为**空白**。同一个字，
-    /// 别的界面先用过 → 卡名能显示；没用过 → 空白。表现为「有时显示有时不显示」。
-    /// 游戏设置卡名文字后不会主动触发 TMP 重建，所以时机完全不受控。
-    ///
-    /// 做法：语言切到中文后，把游戏全部中文文本用到的字符一次性预热进图集，
-    /// 让界面渲染之前字形就已就位。
-    /// 字符集由离线脚本从 5 张中文 StringTable 提取，随插件分发（charset.txt）。
+    /// 本版做法（最小改动、只保留被实测证明有价值的部分）：
+    ///  先用一个常用汉字探测。**吃不下 CJK 的字体直接跳过**，不再无谓撑大图集；
+    ///  能吃的字体按**原有设置**灌入全部字符（不动图集尺寸、不动多图集开关、
+    ///  不调用 ClearFontAssetData —— 那会销毁图集纹理，有破坏正在渲染文本的风险）。
     /// </summary>
     internal static class GlyphWarmer
     {
@@ -47,64 +53,81 @@ namespace SGZhFix
             if (string.IsNullOrEmpty(_chars)) return;
             try
             {
-                // 枚举所有已加载的字体资产（含未激活对象），避免使用泛型重载以规避 interop 问题
-                var objs = Resources.FindObjectsOfTypeAll(Il2CppType.Of<TMP_FontAsset>());
+                var all = new List<TMP_FontAsset>();
                 var seen = new HashSet<int>();
-                int total = 0, dynamicCount = 0;
-
-                foreach (var o in objs)
+                foreach (var o in Resources.FindObjectsOfTypeAll(Il2CppType.Of<TMP_FontAsset>()))
                 {
-                    var fa = o.TryCast<TMP_FontAsset>();
-                    if (fa == null || !seen.Add(fa.GetInstanceID())) continue;
-                    total++;
-                    if (WarmOne(fa, log)) dynamicCount++;
-
-                    // 顺带处理 fallback 链：中文字形往往是通过 fallback 命中 CJK 字体的
-                    var fb = fa.fallbackFontAssetTable;
-                    if (fb != null)
-                    {
-                        foreach (var f in fb)
-                        {
-                            if (f == null || !seen.Add(f.GetInstanceID())) continue;
-                            total++;
-                            if (WarmOne(f, log)) dynamicCount++;
-                        }
-                    }
+                    TMP_FontAsset fa;
+                    try { fa = o.TryCast<TMP_FontAsset>(); } catch { continue; }
+                    Collect(fa, seen, all);          // 含 fallback 链
                 }
-                log($"[SGZhFix] 字形预热完毕：扫描 {total} 个字体资产，其中动态 {dynamicCount} 个");
+
+                int dyn = 0, skipped = 0, warmed = 0;
+                foreach (var fa in all)
+                {
+                    try
+                    {
+                        if (fa.atlasPopulationMode != AtlasPopulationMode.Dynamic) continue;
+                        dyn++;
+                        if (WarmOne(fa, log)) warmed++; else skipped++;
+                    }
+                    catch (Exception e) { log($"[SGZhFix]   预热 {Name(fa)} 出错：{e.Message}"); }
+                }
+                log($"[SGZhFix] 字形预热完毕：扫描 {all.Count} 个字体，动态 {dyn} 个 —— "
+                    + $"预热 {warmed}，跳过(不含中文字形) {skipped}");
             }
-            catch (Exception e)
-            {
-                logErr($"[SGZhFix] 字形预热出错（不影响游戏）：{e}");
-            }
+            catch (Exception e) { logErr($"[SGZhFix] 字形预热出错（不影响游戏）：{e}"); }
         }
 
-        /// <returns>是否为动态字体</returns>
+        /// <returns>true=已预热；false=不含中文字形，已跳过</returns>
         private static bool WarmOne(TMP_FontAsset fa, Action<string> log)
         {
-            try
+            // 探测：一个常用汉字都加不进去，说明这个字体不含 CJK 字形。
+            // 用探测而不是"全灌一遍再看缺多少"，是为了不给拉丁字体留下
+            // 几十个 ASCII 字形 —— 那正是把它们的图集撑到第 2 页的原因。
+            bool canCjk;
+            try { canCjk = fa.TryAddCharacters("的", out string probeMissing) && string.IsNullOrEmpty(probeMissing); }
+            catch { canCjk = false; }
+
+            if (!canCjk)
             {
-                var mode = fa.atlasPopulationMode;
-                int pagesBefore = fa.atlasTextureCount;
-                string first = "无";
-                var tex = fa.atlasTextures;
-                if (tex != null && tex.Length > 0 && tex[0] != null)
-                    first = $"{tex[0].width}x{tex[0].height}";
-
-                log($"[SGZhFix] 字体 {fa.name}: 模式={mode} 图集页={pagesBefore} 首页={first} 多图集={fa.isMultiAtlasTexturesEnabled}");
-
-                if (mode != AtlasPopulationMode.Dynamic) return false;
-
-                bool ok = fa.TryAddCharacters(_chars, out string missing);
-                int miss = missing == null ? 0 : missing.Length;
-                log($"[SGZhFix]   预热结果: {(ok ? "全部加入" : $"有 {miss} 字未加入")}，图集页 {pagesBefore} → {fa.atlasTextureCount}");
-                return true;
-            }
-            catch (Exception e)
-            {
-                log($"[SGZhFix]   预热 {fa?.name} 失败：{e.Message}");
+                log($"[SGZhFix]   字体 {Name(fa)}: 不含中文字形 → 跳过预热（避免无谓撑大图集）");
                 return false;
             }
+
+            bool ok;
+            string missing = null;
+            try { ok = fa.TryAddCharacters(_chars, out missing); }
+            catch (Exception e) { ok = false; missing = e.Message; }
+
+            int miss = string.IsNullOrEmpty(missing) ? 0 : missing.Length;
+            log($"[SGZhFix]   字体 {Name(fa)}: {(ok ? "全部加入" : $"有 {miss} 字未加入")}，图集页={SafePages(fa)}");
+            return true;
+        }
+
+        private static void Collect(TMP_FontAsset fa, HashSet<int> seen, List<TMP_FontAsset> acc)
+        {
+            if (fa == null) return;
+            int id;
+            try { id = fa.GetInstanceID(); } catch { return; }
+            if (!seen.Add(id)) return;
+            acc.Add(fa);
+            try
+            {
+                var fb = fa.fallbackFontAssetTable;
+                if (fb != null) foreach (var f in fb) Collect(f, seen, acc);
+            }
+            catch { }
+        }
+
+        private static int SafePages(TMP_FontAsset fa)
+        {
+            try { return fa.atlasTextureCount; } catch { return -1; }
+        }
+
+        private static string Name(TMP_FontAsset fa)
+        {
+            try { return fa.name; } catch { return "?"; }
         }
     }
 }

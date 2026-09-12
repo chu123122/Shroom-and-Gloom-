@@ -44,7 +44,7 @@ namespace SGZhFix
                     Patches.Apply(LogMsg, LogErr);
                     GlyphWarmer.LoadCharset(LogMsg, LogErr);
                     AddComponent<LocalizationPump>();
-                    AddComponent<TextDiagnostics>();   // 诊断：报告字体链渲染不了的中文字形
+                    AddComponent<TextDiagnostics>();   // 诊断（默认关闭，见 TextDiagnostics.Enabled）
                     LogMsg($"[SGZhFix] 就绪，等待本地化表加载…");
                 }
             }
@@ -120,8 +120,8 @@ namespace SGZhFix
                         _injectedForLocale = true;
                         _everInjected = true;
                         Plugin.LogMsg($"[SGZhFix] 注入完成：写入 {written} 条（{code}，等待 {_waited:F1}s）");
-                        // 表已就绪、语言已是中文，此时预热字形最合适：
-                        // 中文字体是动态图集，字形不预热的话首次渲染会是空白
+                        // 表就绪、语言已是中文，此时预热最合适：把中文全部落进单页图集，
+                        // 既避免字形缺失导致的空白，也避免跨页导致的渲染错乱
                         GlyphWarmer.Warm(Plugin.LogMsg, Plugin.LogErr);
                         Refresh();
                     }

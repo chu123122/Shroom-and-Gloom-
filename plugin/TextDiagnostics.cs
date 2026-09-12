@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using BepInEx;
 using Il2CppInterop.Runtime;
@@ -26,12 +27,27 @@ namespace SGZhFix
         private float _timer;
         private int _scans;
         private const float Interval = 5f;
-        private const int MaxScans = 40;      // 5s × 40 = 约 200 秒，覆盖启动到游戏中
+        private const int MaxScans = 120;     // 5s × 120 = 约 10 分钟，留足观察窗口
+
+        private bool _gateChecked;
 
         private void Update()
         {
             try
             {
+                // 默认关闭。每 5 秒 FindObjectsOfTypeAll 一轮对发布版是不必要的开销，
+                // 只在 plugins/ 下放一个 diagnostics.on 才启用（排障时）
+                if (!_gateChecked)
+                {
+                    _gateChecked = true;
+                    if (!File.Exists(Path.Combine(Paths.PluginPath, "diagnostics.on")))
+                    {
+                        enabled = false;
+                        return;
+                    }
+                    Plugin.LogMsg("[SGZhFix][诊断] 已启用（检测到 diagnostics.on）");
+                }
+
                 _timer += Time.deltaTime;
                 if (_timer < Interval) return;
                 _timer = 0f;
@@ -75,6 +91,12 @@ namespace SGZhFix
 
                 if (string.IsNullOrEmpty(parsed)) continue;
 
+                // 判据 B：同一文本的字形是否跨了多个图集页（多个材质引用）。
+                // 游戏会把 text.fontSharedMaterial 直接赋成共享材质
+                // （GamePrefabs.cs:233），HighlightTextUpdater 还每帧往共享材质写属性。
+                // 跨页文本一旦材质被换错，字形就会渲染错乱。
+                ReportMultiPage(t, font, parsed);
+
                 var missing = MissingCjk(t, font, parsed);
                 if (missing.Count == 0) continue;
 
@@ -86,6 +108,47 @@ namespace SGZhFix
                     $"  缺字=[{new string(missing.ToArray())}]  文本={Trunc(parsed, 70)}");
                 Plugin.LogErr($"[SGZhFix][诊断]   字体链: {ChainOf(t, font)}");
             }
+        }
+
+        /// <summary>
+        /// 判据 B：报告字形跨多个图集页的文本。
+        /// 通过 textInfo.characterInfo[i].materialReferenceIndex 统计该文本实际用到的材质数，
+        /// 以及 textInfo.materialCount。>1 表示字形分布在多个图集页上。
+        /// </summary>
+        private void ReportMultiPage(TMP_Text t, TMP_FontAsset font, string parsed)
+        {
+            try
+            {
+                var ti = t.textInfo;
+                if (ti == null) return;
+                int matCount;
+                try { matCount = ti.materialCount; } catch { return; }
+                if (matCount <= 1) return;                  // 单页，无风险
+
+                // 统计可见字符实际用到的材质引用
+                var used = new HashSet<int>();
+                var chars = ti.characterInfo;
+                int n = ti.characterCount;
+                for (int i = 0; i < n && i < chars.Length; i++)
+                {
+                    var ci = chars[i];
+                    if (!ci.isVisible) continue;
+                    used.Add(ci.materialReferenceIndex);
+                }
+                if (used.Count <= 1) return;                // 虽然多页，但这条文本只用了一页
+
+                int atlasPages;
+                try { atlasPages = font.atlasTextureCount; } catch { atlasPages = -1; }
+
+                var key = "PAGE|" + font.name + "|" + used.Count;
+                if (!_reported.Add(key)) return;
+
+                Plugin.LogErr(
+                    $"[SGZhFix][诊断] 文本跨图集页  对象='{PathOf(t.gameObject)}'  字体='{font.name}'" +
+                    $"  用到材质数={used.Count} materialCount={matCount} 字体图集页={atlasPages}" +
+                    $"  文本={Trunc(parsed, 50)}");
+            }
+            catch { }
         }
 
         /// <summary>返回 parsed 里字体链渲染不了的 CJK 字符（去重，保序）。</summary>
