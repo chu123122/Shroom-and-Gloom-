@@ -71,3 +71,8 @@ bepinex_dl/
 dist/
 dmg_search.txt
 dupcheck.txt
+all_empty.txt
+font_atlas.txt
+garbled.txt
+hot_slime.txt
+shovel.txt
