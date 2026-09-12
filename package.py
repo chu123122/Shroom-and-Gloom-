@@ -19,7 +19,7 @@ PLUGIN_DLL = os.path.join(HERE, "plugin", "bin", "Release", "SGZhFix.dll")
 CHARSET = os.path.join(HERE, "charset.txt")
 TRANSLATIONS = os.path.join(HERE, "translations.json")
 DIST = os.path.join(HERE, "dist")
-VERSION = "1.0.0"
+VERSION = "1.0.1"
 
 BEPINEX_URL = ("https://builds.bepinex.dev/projects/bepinex_be/788/"
                "BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.788%2B5b766a3.zip")
