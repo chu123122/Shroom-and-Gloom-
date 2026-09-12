@@ -16,10 +16,9 @@ import os, sys, zipfile, shutil, json
 HERE = os.path.dirname(os.path.abspath(__file__))
 BEPINEX_ZIP = os.path.join(HERE, "bepinex_dl", "be.zip")
 PLUGIN_DLL = os.path.join(HERE, "plugin", "bin", "Release", "SGZhFix.dll")
-CHARSET = os.path.join(HERE, "charset.txt")
 TRANSLATIONS = os.path.join(HERE, "translations.json")
 DIST = os.path.join(HERE, "dist")
-VERSION = "1.0.1"
+VERSION = "1.0.2"
 
 BEPINEX_URL = ("https://builds.bepinex.dev/projects/bepinex_be/788/"
                "BepInEx-Unity.IL2CPP-win-x64-6.0.0-be.788%2B5b766a3.zip")
@@ -44,17 +43,26 @@ Shroom and Gloom 中文显示修复 v{ver}
 
 本补丁做了什么
 --------------
-修复中文界面的两类文字不显示问题：
+修复中文界面下「部分文字整词消失」的问题：
 
-一、部分文字「整词消失」——
-中文语言表里有 65 条条目是空字符串，游戏代码遇到空值不回退英文，
-导致这些词在卡牌描述、敌人意图、悬停提示里直接不见。
-本补丁在运行时把这 65 条补回中文，不修改游戏任何文件。
+中文语言表里有 65 条条目的值是空字符串，而游戏代码遇到空值**不回退英文**
+（LocalizationExtensions.FlagIfEmpty），这些词在卡牌描述、敌人意图、
+悬停提示里直接不见。本补丁在运行时把这 65 条补回中文，
+**不修改游戏任何文件**。
 
-二、卡名等文字「有时显示有时不显示」——
-游戏的中文字体是 TMP Dynamic 字体，字形图集在运行时按需增长、动态扩页，
-扩页瞬间正在显示的文本会变空白。本补丁在启动时把全部中文字符一次性
-预热进图集，让界面渲染前字形就已就位。
+修复方式：BepInEx 插件在语言切到中文、语言表就绪后，
+把译文写回内存中的 StringTable（只填空值，已有的一律不动）。
+
+不在本次范围
+------------
+游戏另有「个别文字偶尔不显示」的现象（间歇性，鼠标悬停后可能恢复）。
+本补丁**不解决**它 —— 这一点经过实测确认，相关内容已从补丁中移除。
+
+排障
+----
+在 BepInEx\plugins\ 下新建一个空文件 diagnostics.on 并重启游戏，
+插件会开启文本诊断，把扫描到的缺字形、跨图集页情况写进
+BepInEx\LogOutput.log（搜索 "SGZhFix"）。提交 Issue 时请附上相关行。
 
 卸载
 ----
@@ -100,7 +108,7 @@ BepInEx 6 (bleeding edge, build 788) — Unity IL2CPP 插件加载器
 
 
 def build():
-    missing = [p for p in (BEPINEX_ZIP, PLUGIN_DLL, TRANSLATIONS, CHARSET) if not os.path.exists(p)]
+    missing = [p for p in (BEPINEX_ZIP, PLUGIN_DLL, TRANSLATIONS) if not os.path.exists(p)]
     if missing:
         print("缺少以下文件，无法打包：")
         for m in missing: print("   ", m)
@@ -120,7 +128,6 @@ def build():
         # 2) 我们的插件与译文
         z.write(PLUGIN_DLL, "BepInEx/plugins/SGZhFix.dll")
         z.write(TRANSLATIONS, "BepInEx/plugins/translations.json")
-        z.write(CHARSET, "BepInEx/plugins/charset.txt")
         # 3) 说明与声明
         z.writestr("安装说明.txt", README_TXT)
         z.writestr("THIRD-PARTY.txt", THIRD_PARTY)

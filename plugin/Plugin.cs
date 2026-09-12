@@ -26,7 +26,7 @@ namespace SGZhFix
     public class Plugin : BasePlugin
     {
         public const string Guid = "sg.zhfix";
-        public const string Version = "1.0.1";
+        public const string Version = "1.0.2";
 
         internal static ManualLogSource LogSource;
 
@@ -42,7 +42,6 @@ namespace SGZhFix
                 if (Translations.Loaded)
                 {
                     Patches.Apply(LogMsg, LogErr);
-                    GlyphWarmer.LoadCharset(LogMsg, LogErr);
                     AddComponent<LocalizationPump>();
                     AddComponent<TextDiagnostics>();   // 诊断（默认关闭，见 TextDiagnostics.Enabled）
                     LogMsg($"[SGZhFix] 就绪，等待本地化表加载…");
@@ -120,9 +119,6 @@ namespace SGZhFix
                         _injectedForLocale = true;
                         _everInjected = true;
                         Plugin.LogMsg($"[SGZhFix] 注入完成：写入 {written} 条（{code}，等待 {_waited:F1}s）");
-                        // 表就绪、语言已是中文，此时预热最合适：把中文全部落进单页图集，
-                        // 既避免字形缺失导致的空白，也避免跨页导致的渲染错乱
-                        GlyphWarmer.Warm(Plugin.LogMsg, Plugin.LogErr);
                         Refresh();
                     }
                     else if (_zhSince > AlreadyFilledGrace)

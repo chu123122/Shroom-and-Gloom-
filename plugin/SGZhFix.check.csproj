@@ -23,7 +23,6 @@
     <Compile Include="Plugin.cs" />
     <Compile Include="Patches.cs" />
     <Compile Include="Translations.cs" />
-    <Compile Include="GlyphWarmer.cs" />
     <Compile Include="TextDiagnostics.cs" />
   </ItemGroup>
 
